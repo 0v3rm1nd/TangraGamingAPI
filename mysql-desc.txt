@@ -1,0 +1,23 @@
+desc users;
++--------------------+--------------+------+-----+---------+----------------+
+| Field              | Type         | Null | Key | Default | Extra          |
++--------------------+--------------+------+-----+---------+----------------+
+| uid                | int(11)      | NO   | PRI | NULL    | auto_increment | 
+| unique_id          | varchar(23)  | NO   | UNI |         |                | 
+| name               | varchar(50)  | NO   |     |         |                | 
+| email              | varchar(100) | NO   | UNI |         |                | 
+| encrypted_password | varchar(80)  | NO   |     |         |                | 
+| salt               | varchar(10)  | NO   |     |         |                | 
+| created_at         | datetime     | YES  |     | NULL    |                | 
+| updated_at         | datetime     | YES  |     | NULL    |                | 
++--------------------+--------------+------+-----+---------+----------------+
+
+ desc message;
++---------+--------------+------+-----+-------------------+----------------+
+| Field   | Type         | Null | Key | Default           | Extra          |
++---------+--------------+------+-----+-------------------+----------------+
+| id      | int(11)      | NO   | PRI | NULL              | auto_increment | 
+| ts      | timestamp    | NO   |     | CURRENT_TIMESTAMP |                | 
+| uid     | varchar(23)  | YES  | MUL | NULL              |                | 
+| message | varchar(200) | YES  |     | NULL              |                | 
++---------+--------------+------+-----+-------------------+----------------+

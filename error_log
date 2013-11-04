@@ -1,0 +1,2 @@
+[04-Feb-2013 14:26:43 Europe/Sofia] PHP Warning:  mysql_connect() [<a href='function.mysql-connect'>function.mysql-connect</a>]: Access denied for user 'root'@'localhost' (using password: NO) in /home/e0v3rm1n/public_html/AndroidProject/getwall.php on line 9
+[04-Feb-2013 14:32:53 Europe/Sofia] PHP Warning:  mysql_connect() [<a href='function.mysql-connect'>function.mysql-connect</a>]: Access denied for user 'root'@'localhost' (using password: NO) in /home/e0v3rm1n/public_html/AndroidProject/update.php on line 18

@@ -2,9 +2,10 @@
 
 /**
  * Database config variables
+ * I could use mysqli instead or PDO
  */
 define("DB_HOST", "localhost");
-define("DB_USER", "e0v3rm1n_root");
-define("DB_PASSWORD", "!0v3ry0urm1nd");
-define("DB_DATABASE", "e0v3rm1n_androidproject");
+define("DB_USER", "root");
+define("DB_PASSWORD", "0v3rm1nd");
+define("DB_DATABASE", "tangra");
 ?>

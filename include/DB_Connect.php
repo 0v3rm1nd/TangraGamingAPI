@@ -15,6 +15,7 @@ class DB_Connect {
     public function connect() {
         require_once 'include/config.php';
         // connecting to mysql
+        //I could use mysqli instead or PDO
         $con = mysql_connect(DB_HOST, DB_USER, DB_PASSWORD);
         // selecting database
         mysql_select_db(DB_DATABASE);

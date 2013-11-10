@@ -5,9 +5,9 @@ if ((isset($_POST['id']) == true) && ($_POST['id'] != '') &&
     (isset($_POST['message']) == true) && ($_POST['message'] != '')) 
     {    
       $dbserver = 'localhost';
-      $dbuser = 'e0v3rm1n_root';
-      $dbpass =  '!0v3ry0urm1nd';
-      $dbname = 'e0v3rm1n_androidproject';
+      $dbuser = 'root';
+      $dbpass =  '0v3rm1nd';
+      $dbname = 'androidproject';
       
       $id = $_POST['id'];
       $message = $_POST['message'];

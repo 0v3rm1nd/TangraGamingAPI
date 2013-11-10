@@ -30,7 +30,6 @@ class DB_Functions {
         if ($result) {
             // get user details           
             $result = mysql_query("SELECT * FROM user WHERE email =\"$email\"");
-            echo mysql_error();
             // return user details
             return mysql_fetch_array($result);
         } else {

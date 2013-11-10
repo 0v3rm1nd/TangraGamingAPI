@@ -57,7 +57,11 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             $response["error"] = 4;
             $response["error_msg"] = "Password too weak, (min. six characters)";
             echo json_encode($response);
-        } else {
+        } else if (!$db->validNickname($nickname)) {
+            $response["error"] = 5;
+            $response["error_msg"] = "Nickname must be at least 2 characters long";
+            echo json_encode($response);
+        }else {
             // store user
             $user = $db->registerUser($email, $nickname, $password);
             if ($user) {

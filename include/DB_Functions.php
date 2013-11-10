@@ -2,14 +2,13 @@
 
 class DB_Functions {
 
-    private $db;
+    private $conn;
 
     // constructor
     function __construct() {
-        require_once 'DB_Connect.php';
-        // instantiate + connect to database
-        $this->db = new DB_Connect();
-        $this->db->connect();
+        require_once 'connection.inc.php';
+        //connect to database
+        $this->conn = dbConnect('write');
     }
 
     // destructor
@@ -25,15 +24,26 @@ class DB_Functions {
         $hash = $this->hashSHA($password);
         $encrypted_password = $hash["encrypted"]; // encrypted password
         $salt = $hash["salt"]; // salt
-        $result = mysql_query("INSERT INTO user(email, nickname, password, salt, datecreated) VALUES( '$email', '$nickname', '$encrypted_password', '$salt', NOW())");
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $datecreated = $date->format('Y-m-d H:i:s');
+        $sql = 'INSERT INTO user ( email, nickname, password, salt, datecreated)
+          VALUES (?, ?, ?, ?, ?)';
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('sssis', $email, $nickname, $encrypted_password, $salt, $datecreated);
+        $stmt->execute();
         // check for successful store
-        if ($result) {
-            // get user details           
-            $result = mysql_query("SELECT * FROM user WHERE email =\"$email\"");
+        if ($stmt->affected_rows == 1) {
+            // get user details 
+            $sql = "SELECT * FROM user WHERE email =\"$email\"";
             // return user details
-            return mysql_fetch_array($result);
+            $result = $this->conn->query($sql) or die($this->conn->error);
+            return $result->fetch_assoc();
+            //return mysql_fetch_array($result);
         } else {
-            return false;
+            echo 'Sorry, there was a problem with the database.';
         }
     }
 
@@ -41,11 +51,12 @@ class DB_Functions {
      * Get user by email and password
      */
     public function loginUser($email, $password) {
-        $result = mysql_query("SELECT * FROM user WHERE email = '$email'") or die(mysql_error());
+        $sql = "SELECT * FROM user WHERE email = '$email'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
         // check for result 
-        $no_of_rows = mysql_num_rows($result);
-        if ($no_of_rows > 0) {
-            $result = mysql_fetch_array($result);
+        if ($numRows > 0) {
+            $result = $result->fetch_assoc();
             $salt = $result['salt'];
             $encrypted_password = $result['password'];
             $hash = $this->checkhashSHA($salt, $password);
@@ -64,9 +75,10 @@ class DB_Functions {
      * Check if user is already in the system
      */
     public function isUserExisted($email) {
-        $result = mysql_query("SELECT email from user WHERE email = '$email'");
-        $no_of_rows = mysql_num_rows($result);
-        if ($no_of_rows > 0) {
+        $sql = "SELECT email from user WHERE email = '$email'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+        if ($numRows > 0) {
             // user existed 
             return true;
         } else {
@@ -106,6 +118,17 @@ class DB_Functions {
     function validPassword($password) {
         $ok = true;
         if (strlen($password) < 6)
+            $ok = false;
+
+        return $ok;
+    }
+
+    /**
+     * check is the nickname is at least 2 characters
+     */
+    function validNickname($nickname) {
+        $ok = true;
+        if (strlen($nickname) < 2)
             $ok = false;
 
         return $ok;
@@ -156,7 +179,7 @@ class DB_Functions {
                 }
             }
             if ($isValid && !(checkdnsrr($domain, "MX") ||
-                    checkdnsrr($domain , "A"))) {
+                    checkdnsrr($domain, "A"))) {
                 // domain not found in DNS
                 $isValid = false;
             }

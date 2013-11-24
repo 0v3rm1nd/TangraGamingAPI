@@ -137,8 +137,35 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             $response["error_msg"] = "There was a problem updating user";
             echo json_encode($response);
         }
-    }
-    //End of login functionality 
+    }// end of tag updateUserData
+    else if ($tag == 'resetpassword') {
+        // Request type is Register new user
+        $email = $_POST['email'];
+        $oldpassword = $_POST['oldpassword'];
+        $newpassword = $_POST['newpassword'];
+
+        // check if the new password is complex enough
+        if (!$db->validPassword($newpassword)) {
+            $response["error"] = 4;
+            $response["error_msg"] = "Password too weak, (min. six characters)";
+            echo json_encode($response);
+        } else {
+            // store user
+            $resetpass = $db->resetPassword($email, $oldpassword, $newpassword);
+            if ($resetpass) {
+                // user stored successfully
+                $response["success"] = 1;
+                $response ["PasswordResetResult"] = "Successful";
+                $response["user"]["email"] = $resetpass["email"];
+                echo json_encode($response);
+            } else {
+                // user failed to store
+                $response["error"] = 1;
+                $response["error_msg"] = "Error occured in password reset";
+                echo json_encode($response);
+            }
+        }
+    } // end of tag resetpassword
     //Other part of the system
     else if ($tag == 'getwall') {
         $uid = $_POST['from'];

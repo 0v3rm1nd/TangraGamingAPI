@@ -116,8 +116,8 @@ class DB_Functions {
             return false;
         }
     }
-    
-        /**
+
+    /**
      * Storing user data +
      * returns user data
      */
@@ -141,6 +141,51 @@ class DB_Functions {
             //return mysql_fetch_array($result);
         } else {
             echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
+     * Reset user password based on old + new pass
+     */
+    public function resetPassword($email, $oldpassword, $newpassword) {
+        $sql = "SELECT email, password, salt  FROM user WHERE email = '$email'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+        // check for result 
+        if ($numRows > 0) {
+            $result = $result->fetch_assoc();
+            $salt = $result['salt'];
+            $encrypted_password = $result['password'];
+            $hash = $this->checkhashSHA($salt, $oldpassword);
+            // check whether the old password matches
+            if ($encrypted_password == $hash) {
+                // if the old password matches update the password with the new password
+                $newhash = $this->hashSHA($newpassword);
+                $encrypted_newpassword = $newhash["encrypted"]; // encrypted password
+                $newsalt = $newhash["salt"]; // salt
+                //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+                $date = new DateTime();
+                $dateupdated = $date->format('Y-m-d H:i:s');
+                $sql = "UPDATE user SET password = ?, salt = ?, dateupdated = ? WHERE email = ?";
+                $stmt = $this->conn->stmt_init();
+                $stmt = $this->conn->prepare($sql);
+                // bind parameters and insert the details into the database
+                $stmt->bind_param('siss', $encrypted_newpassword, $newsalt, $dateupdated, $email);
+                $stmt->execute();
+                if ($stmt->affected_rows == 1) {
+                    // get user details 
+                    $sql = "SELECT email, dateupdated FROM user WHERE email =\"$email\"";
+                    // return user details
+                    $result = $this->conn->query($sql) or die($this->conn->error);
+                    return $result->fetch_assoc();
+                } else {
+                    echo 'Sorry, there was a problem with the database.';
+                }
+
+            }
+        } else {
+            // There was a problem --> the submitted old password did not match the one in the db 
+            return false;
         }
     }
 

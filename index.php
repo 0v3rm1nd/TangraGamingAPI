@@ -26,8 +26,13 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             $response["user"]["email"] = $user["email"];
             $response["user"]["nickname"] = $user["nickname"];
             $response["user"]["name"] = $user["name"];
+            $response["user"]["location"] = $user["location"];
+            $response["user"]["gender"] = $user["gender"];
+            $response["user"]["birthday"] = $user["birthday"];
+            $response["user"]["hobby"] = $user["hobby"];
             $response["user"]["datecreated"] = $user["datecreated"];
             $response["user"]["dateupdated"] = $user["dateupdated"];
+            $response["user"]["lastlogin"] = $user["lastlogin"];
             echo json_encode($response);
         } else {
             // user not found
@@ -61,7 +66,7 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             $response["error"] = 5;
             $response["error_msg"] = "Nickname must be at least 2 characters long";
             echo json_encode($response);
-        }else {
+        } else {
             // store user
             $user = $db->registerUser($email, $nickname, $password);
             if ($user) {
@@ -70,8 +75,13 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
                 $response["user"]["email"] = $user["email"];
                 $response["user"]["nickname"] = $user["nickname"];
                 $response["user"]["name"] = $user["name"];
+                $response["user"]["location"] = $user["location"];
+                $response["user"]["gender"] = $user["gender"];
+                $response["user"]["birthday"] = $user["birthday"];
+                $response["user"]["hobby"] = $user["hobby"];
                 $response["user"]["datecreated"] = $user["datecreated"];
                 $response["user"]["dateupdated"] = $user["dateupdated"];
+                $response["user"]["lastlogin"] = $user["lastlogin"];
                 echo json_encode($response);
             } else {
                 // user failed to store
@@ -80,7 +90,54 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
                 echo json_encode($response);
             }
         }
-    }  // end of tag register 
+    } // end of tag register
+    else if ($tag == 'getUserStatisticalData') {
+        $email = $_POST['email'];
+        // get total posts made by a user in all rooms + the number of joined rooms based on the supplied email
+        $userGetTotalUserPosts = $db->getTotalUserPosts($email);
+        $userGetTotalRoomsJoined = $db->getTotalRoomsJoined($email);
+        if ($userGetTotalUserPosts != false && $userGetTotalRoomsJoined != false) {
+            // the query was ok
+            // echo json with success = 1
+            $response["success"] = 1;
+            $response["getUserStatisticalData"]["getTotalPosts"] = $userGetTotalUserPosts["getTotalPosts"];
+            $response["getUserStatisticalData"]["getTotalRoomsJoined"] = $userGetTotalRoomsJoined["getTotalRoomsJoined"];
+            echo json_encode($response);
+        } else {
+            // echo json with error = 1
+            $response["error"] = 1;
+            $response["error_msg"] = "There was a problem getting the statistical data";
+            echo json_encode($response);
+        }
+    }// end of tag getUserStatisticalData
+    else if ($tag == 'updateUserData') {
+        $email = $_POST['email'];
+        $name = $_POST['name'];
+        $location = $_POST['location'];
+        $gender = $_POST['gender'];
+        $birthday = $_POST['birthday'];
+        $hobby = $_POST['hobby'];
+        // get a confirmation that the data has been updated
+        $userUpdateData = $db->updateUserData($email, $name, $location, $gender, $birthday, $hobby);
+        if ($userUpdateData != false) {
+            // the query was ok
+            // echo json with success = 1
+            $response["success"] = 1;
+            $response["user"]["email"] = $userUpdateData["email"];
+            $response["user"]["name"] = $userUpdateData["name"];
+            $response["user"]["location"] = $userUpdateData["location"];
+            $response["user"]["gender"] = $userUpdateData["gender"];
+            $response["user"]["birthday"] = $userUpdateData["birthday"];
+            $response["user"]["hobby"] = $userUpdateData["hobby"];
+            $response["user"]["dateupdated"] = $userUpdateData["dateupdated"];
+            echo json_encode($response);
+        } else {
+            // echo json with error = 1
+            $response["error"] = 1;
+            $response["error_msg"] = "There was a problem updating user";
+            echo json_encode($response);
+        }
+    }
     //End of login functionality 
     //Other part of the system
     else if ($tag == 'getwall') {

@@ -88,6 +88,63 @@ class DB_Functions {
     }
 
     /**
+     * Get statistical data about the number of posts made by a user
+     */
+    public function getTotalUserPosts($email) {
+        $sql = "SELECT COUNT(*) AS getTotalPosts FROM post WHERE USER = '$email'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+        if ($numRows > 0) {
+            $result = $result->fetch_assoc();
+            return $result;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Get statistical data about the number of room joind by a user 
+     */
+    public function getTotalRoomsJoined($email) {
+        $sql = "SELECT COUNT(*) AS getTotalRoomsJoined FROM userroom WHERE USER ='$email'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+        if ($numRows > 0) {
+            $result = $result->fetch_assoc();
+            return $result;
+        } else {
+            return false;
+        }
+    }
+    
+        /**
+     * Storing user data +
+     * returns user data
+     */
+    public function updateUserData($email, $name, $location, $gender, $birthday, $hobby) {
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $dateupdated = $date->format('Y-m-d H:i:s');
+        $sql = "UPDATE user  SET name = ?, location = ?, gender = ?, birthday = ?, hobby = ?, dateupdated = ? WHERE email = ?";
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('sssssss', $name, $location, $gender, $birthday, $hobby, $dateupdated, $email);
+        $stmt->execute();
+        // check for successful updated
+        if ($stmt->affected_rows == 1) {
+            // get the updated user details 
+            $sql = "SELECT email, name, location, gender, birthday, hobby, dateupdated FROM user WHERE email =\"$email\"";
+            // return user details
+            $result = $this->conn->query($sql) or die($this->conn->error);
+            return $result->fetch_assoc();
+            //return mysql_fetch_array($result);
+        } else {
+            echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
      * Encrypting password
      * @param password
      * returns salt and encrypted password

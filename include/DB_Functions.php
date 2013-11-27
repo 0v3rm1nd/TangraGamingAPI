@@ -118,7 +118,7 @@ class DB_Functions {
     }
 
     /**
-     * Storing user data +
+     * Update user data +
      * returns user data
      */
     public function updateUserData($email, $name, $location, $gender, $birthday, $hobby) {
@@ -181,11 +181,100 @@ class DB_Functions {
                 } else {
                     echo 'Sorry, there was a problem with the database.';
                 }
-
             }
         } else {
             // There was a problem --> the submitted old password did not match the one in the db 
             return false;
+        }
+    }
+
+    /**
+     * Get main groups 
+     */
+    public function getMainRooms() {
+        //get the names of all main rooms
+        $sql = "SELECT name, datecreated FROM mainroom";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 1) {
+                $rowcount = 1;
+                //loop through the returned main rooms
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "name")
+                            $name = $val;
+                        if ($var == "datecreated")
+                            $datecreated = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('name' => $name, 'datecreated' => $datecreated);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Get main groups 
+     */
+    public function getRoomMembership($email) {
+        //get the room membership based on user email
+        $sql = "SELECT room FROM userroom WHERE user = '$email' ORDER BY datecreated DESC";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 1) {
+                $rowcount = 1;
+                //loop through the returned main rooms
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "room")
+                            $name = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('name' => $name);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Storing user created room
+     * returns user details
+     */
+    public function createRoom($name, $owner, $parentroom) {
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $datecreated = $date->format('Y-m-d H:i:s');
+        $sql = 'INSERT INTO room ( name, owner, parentroom, datecreated)
+          VALUES (?, ?, ?, ?)';
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('ssss', $name, $owner, $parentroom, $datecreated);
+        $stmt->execute();
+        // check for successful store
+        if ($stmt->affected_rows == 1) {
+            // get room details 
+            $sql = "SELECT * FROM room WHERE name =\"$name\"";
+            // return room details
+            $result = $this->conn->query($sql) or die($this->conn->error);
+            return $result->fetch_assoc();
+            //return mysql_fetch_array($result);
+        } else {
+            echo 'Sorry, there was a problem with the database.';
         }
     }
 
@@ -226,11 +315,22 @@ class DB_Functions {
     }
 
     /**
-     * check is the nickname is at least 2 characters
+     * check is the nickname least 2 characters
      */
     function validNickname($nickname) {
         $ok = true;
         if (strlen($nickname) < 2)
+            $ok = false;
+
+        return $ok;
+    }
+
+    /**
+     * check is the room name  least 2 characters
+     */
+    function validRoomName($name) {
+        $ok = true;
+        if (strlen($name) < 2)
             $ok = false;
 
         return $ok;

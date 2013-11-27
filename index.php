@@ -150,22 +150,85 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             $response["error_msg"] = "Password too weak, (min. six characters)";
             echo json_encode($response);
         } else {
-            // store user
+            // reset pass
             $resetpass = $db->resetPassword($email, $oldpassword, $newpassword);
             if ($resetpass) {
-                // user stored successfully
+                // pass reset successful
                 $response["success"] = 1;
                 $response ["PasswordResetResult"] = "Successful";
                 $response["user"]["email"] = $resetpass["email"];
                 echo json_encode($response);
             } else {
-                // user failed to store
+                // pass reset failure
                 $response["error"] = 1;
                 $response["error_msg"] = "Error occured in password reset";
                 echo json_encode($response);
             }
         }
     } // end of tag resetpassword
+    else if ($tag == 'getMainRooms') {
+
+        $getmainrooms = $db->getMainRooms();
+        if ($getmainrooms) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["MainRooms"] = $getmainrooms;
+            echo json_encode($response);
+        } else {
+            // get main rooms failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting main rooms";
+            echo json_encode($response);
+        }
+    } // end of tag getMainRooms
+    else if ($tag == 'getRoomMembership') {
+        $email = $_POST['email'];
+        $getroommembership = $db->getRoomMembership($email);
+        if ($getroommembership) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["RoomMembership"] = $getroommembership;
+            echo json_encode($response);
+        } else {
+            // getting room membership failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting room membership data";
+            echo json_encode($response);
+        }
+    } // end of tag getRoomMembership
+    //END OF Tag createroom
+    else if ($tag == 'createroom') {
+
+        $name = $_POST['name'];
+        $owner = $_POST['owner'];
+        $parentroom = $_POST['parentroom'];
+
+        // check if room name is complex enough
+        if (!$db->validRoomName($name)) {
+           //  room name not complex enough
+            $response["error"] = 2;
+            $response["error_msg"] = "Room name must be at least 2 characters";
+            echo json_encode($response);
+        } else {
+            // store room
+            $room = $db->createRoom($name, $owner, $parentroom);
+            if ($room) {
+                // room created successfully
+                $response["success"] = 1;
+                $response["room"]["name"] = $room["name"];
+                $response["room"]["owner"] = $room["owner"];
+                $response["room"]["parentroom"] = $room["parentroom"];
+                $response["room"]["datecreated"] = $room["datecreated"];
+                echo json_encode($response);
+            } else {
+                // room failed to store
+                $response["error"] = 1;
+                $response["error_msg"] = "Error occured in room creation";
+                echo json_encode($response);
+            }
+        }
+    } // end of tag createroom
+    
     //Other part of the system
     else if ($tag == 'getwall') {
         $uid = $_POST['from'];

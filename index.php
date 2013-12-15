@@ -196,7 +196,6 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             echo json_encode($response);
         }
     } // end of tag getRoomMembership
-    //END OF Tag createroom
     else if ($tag == 'createroom') {
 
         $name = $_POST['name'];
@@ -205,7 +204,7 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
 
         // check if room name is complex enough
         if (!$db->validRoomName($name)) {
-           //  room name not complex enough
+            //  room name not complex enough
             $response["error"] = 2;
             $response["error_msg"] = "Room name must be at least 2 characters";
             echo json_encode($response);
@@ -228,7 +227,206 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             }
         }
     } // end of tag createroom
-    
+    else if ($tag == 'getSubRooms') {
+        $parentroom = $_POST['parentroom'];
+
+        $getsubrooms = $db->getSubRooms($parentroom);
+        if ($getsubrooms) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["SubRooms"] = $getsubrooms;
+            echo json_encode($response);
+        } else {
+            // get sub rooms failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting sub rooms";
+            echo json_encode($response);
+        }
+    } // end of tag getsubrooms
+    else if ($tag == 'joinRoom') {
+        $email = $_POST['email'];
+        $roomname = $_POST['roomname'];
+        //make a record based on email and room name
+        $joinRoom = $db->joinRoom($email, $roomname);
+        if ($joinRoom) {
+            // the query was ok
+            // echo json with success = 1
+            $response["success"] = 1;
+            $response["user"]["user"] = $joinRoom["user"];
+            $response["room"]["room"] = $joinRoom["room"];
+            $response["datecreated"] = $joinRoom["datecreated"];
+            echo json_encode($response);
+        } else {
+            // echo json with error = 1
+            $response["error"] = 1;
+            $response["error_msg"] = "There was a problem joining the room";
+            echo json_encode($response);
+        }
+    } // end of tag joinRoom
+    else if ($tag == 'leaveRoom') {
+        $email = $_POST['email'];
+        $roomname = $_POST['roomname'];
+        //remove the userroom record based on an email and room name
+        $leaveRoom = $db->leaveRoom($email, $roomname);
+        if ($leaveRoom) {
+            // the query was ok
+            // echo json with success = 1
+            $response["success"] = 1;
+            $response["success"]["success"] = $leaveRoom;
+            echo json_encode($response);
+        } else {
+            // echo json with error = 1
+            $response["error"] = 1;
+            $response["error_msg"] = "There was a problem leaving the room";
+            echo json_encode($response);
+        }
+    } // end of tag leaveRoom
+    else if ($tag == 'searchRooms') {
+        $roomname = $_POST['roomname'];
+
+        $getrooms = $db->searchRooms($roomname);
+        if ($getrooms) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["SearchRooms"] = $getrooms;
+            echo json_encode($response);
+        } else {
+            // get room list failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting the room list";
+            echo json_encode($response);
+        }
+    } //end of tag searchRoom
+    else if ($tag == 'searchFriend') {
+        $useremail = $_POST['useremail'];
+
+        $getusers = $db->searchUser($useremail);
+        if ($getusers) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["SearchUsers"] = $getusers;
+            echo json_encode($response);
+        } else {
+            // get user list failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting the user list";
+            echo json_encode($response);
+        }
+    }//end of tag searchFriend
+    else if ($tag == 'inviteFriend') {
+        $from = $_POST['from'];
+        $to = $_POST['to'];
+        //make a record based on from and to with the default status of pending
+        $inviteFriend = $db->inviteUserToFriend($from, $to);
+        if ($inviteFriend) {
+            // the query was ok
+            // echo json with success = 1
+            $response["success"] = 1;
+            $response["friendreq"]["from"] = $inviteFriend["from"];
+            $response["friendreq"]["to"] = $inviteFriend["to"];
+            $response["friendreq"]["status"] = $inviteFriend["status"];
+            $response["friendreq"]["datacreated"] = $inviteFriend["datecreated"];
+            echo json_encode($response);
+        } else {
+            // echo json with error = 1
+            $response["error"] = 1;
+            $response["error_msg"] = "There was a problem making the friend request";
+            echo json_encode($response);
+        }
+    } // end of tag joinRoom
+    else if ($tag == 'getFriends') {
+        $user = $_POST['user1'];
+        $getfriends = $db->getFriends($user);
+        if ($getfriends) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["GetFriends"] = $getfriends;
+            echo json_encode($response);
+        } else {
+            // get user list failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting the friend list";
+            echo json_encode($response);
+        }
+    }// end of tag getFriends
+    else if ($tag == 'removeFriend') {
+        $user1 = $_POST['user1'];
+        $user2 = $_POST['user2'];
+        //remove the friend record
+        $removeFriend = $db->removeFriend($user1, $user2);
+        if ($removeFriend) {
+            // the query was ok
+            // echo json with success = 1
+            $response["success"] = 1;
+            $response["success"]["success"];
+            echo json_encode($response);
+        } else {
+            // echo json with error = 1
+            $response["error"] = 1;
+            $response["error_msg"] = "There was a problem removing the friend";
+            echo json_encode($response);
+        }
+    }//end of tag removeFriend
+    else if ($tag == 'getFriendRequests') {
+        $to = $_POST['to'];
+        $getfriendrequests = $db->getFriendRequests($to);
+        if ($getfriendrequests) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["GetFriendRequests"] = $getfriendrequests;
+            echo json_encode($response);
+        } else {
+            // get user list failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting the friend requests";
+            echo json_encode($response);
+        }
+    }//end of tag getFriendRequests
+    else if ($tag == 'acceptFriendRequest') {
+        $from = $_POST['from'];
+        $to = $_POST['to'];
+        $acceptfriendrequest = $db->acceptFriendRequest($from, $to);
+        if ($acceptfriendrequest) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            echo json_encode($response);
+        } else {
+            // get user list failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in accepting the friend request";
+            echo json_encode($response);
+        }
+    }//end of tag acceptFriendRequest
+    else if ($tag == 'declineFriendRequest') {
+        $from = $_POST['from'];
+        $to = $_POST['to'];
+        $declinefriendrequest = $db->declineFriendRequest($from, $to);
+        if ($declinefriendrequest) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            echo json_encode($response);
+        } else {
+            // get user list failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in declining the friend request";
+            echo json_encode($response);
+        }
+    }//end of tag declineFriendRequest
+    else if ($tag == 'getFriendRequestStatuses') {
+        $from = $_POST['from'];
+        $getfriendreqstatuses= $db->getFriendRequestStatuses($from);
+        if ($getfriendreqstatuses) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["GetFriendRequestStatuses"] = $getfriendreqstatuses;
+            echo json_encode($response);
+        } else {
+            // get requests  failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting friend request statutses";
+            echo json_encode($response);
+        }
+    }
     //Other part of the system
     else if ($tag == 'getwall') {
         $uid = $_POST['from'];

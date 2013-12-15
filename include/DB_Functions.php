@@ -279,6 +279,322 @@ class DB_Functions {
     }
 
     /**
+     * Get sub rooms based on a main room 
+     * returns room details
+     */
+    public function getSubRooms($parentroom) {
+        //get the sub rooms based on a main room
+        $sql = "SELECT name FROM room WHERE parentroom = '$parentroom'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 0) {
+                $rowcount = 1;
+                //loop through the returned main rooms
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "name")
+                            $name = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('name' => $name);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Make a userroom record to indicate that a user joined a specific room
+     */
+    public function joinRoom($email, $roomname) {
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $datecreated = $date->format('Y-m-d H:i:s');
+        $sql = 'INSERT INTO userroom ( user, room, datecreated)
+          VALUES (?, ?, ?)';
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('sss', $email, $roomname, $datecreated);
+        $stmt->execute();
+        // check for successful store
+        if ($stmt->affected_rows == 1) {
+            // get room details 
+            $sql = "SELECT * FROM userroom WHERE user =\"$email\" AND room = \"$roomname\"";
+            // return details for the created record
+            $result = $this->conn->query($sql) or die($this->conn->error);
+            return $result->fetch_assoc();
+        } else {
+            echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
+     * Delete userroom record to indicate that a user has left a specific room
+     */
+    public function leaveRoom($email, $roomname) {
+        $sql = "DELETE FROM userroom WHERE user =\"$email\" AND room = \"$roomname\"";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        // check to see if the query was executed successfully result 
+        if ($result) {
+            $success = "User successfully left the room";
+            return $success;
+        } else {
+            echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
+     * Get a room list based on a user input
+     * returns room details
+     */
+    public function searchRooms($roomname) {
+        //get rooms based on a user input
+        $sql = "SELECT name FROM room WHERE name LIKE '%$roomname%'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 0) {
+                $rowcount = 1;
+                //loop through the returned rooms that match the like clause
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "name")
+                            $name = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('name' => $name);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Get user list based on a search pattern 
+     * returns room details
+     */
+    public function searchUser($useremail) {
+        //get a user list based on a search pattern
+        $sql = "SELECT email FROM user WHERE email LIKE '%$useremail%'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 0) {
+                $rowcount = 1;
+                //loop through the returned users that match the like clause
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "email")
+                            $name = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('email' => $name);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Make a friendreq record to indicate the sending of a friend request
+     */
+    public function inviteUserToFriend($from, $to) {
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $datecreated = $date->format('Y-m-d H:i:s');
+        $sql = 'INSERT INTO friendreq (friendreq.from, friendreq.to, datecreated)
+          VALUES (?, ?, ?)';
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('sss', $from, $to, $datecreated);
+        $stmt->execute();
+        // check for successful store
+        if ($stmt->affected_rows == 1) {
+            // get room details 
+            $sql = "SELECT * FROM friendreq WHERE friendreq.from =\"$from\" AND friendreq.to = \"$to\"";
+            // return details for the created record
+            $result = $this->conn->query($sql) or die($this->conn->error);
+            return $result->fetch_assoc();
+        } else {
+            echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
+     * Get friend list based on user 1 and user 2  
+     * returns list of friends
+     */
+    public function getFriends($user) {
+        //get a friend list based user 1 and user 2 mapping
+        $sql = "SELECT user1 FROM friends WHERE user2 = '$user' UNION SELECT user2 FROM friends WHERE user1 ='$user'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 0) {
+                $rowcount = 1;
+                //loop through the returned friends that match the like clause
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "user1")
+                            $name = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('user1' => $name);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Delete friend record based on user 1 and user 2 
+     */
+    public function removeFriend($user1, $user2) {
+        $sql = "DELETE FROM friends WHERE (user1 =\"$user1\" AND user2 = \"$user2\") OR (user1 =\"$user2\" AND user2 = \"$user1\")";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        // check to see if the query was executed successfully result 
+        if ($result) {
+            $success = "Defriend successful";
+            return $success;
+        } else {
+            echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
+     * Get a list of  friend requests that has been sent to you
+     */
+    public function getFriendRequests($to) {
+        //get a lost of friend requests based on a receiver
+        $sql = "SELECT friendreq.from FROM friendreq WHERE friendreq.to = '$to' AND status = 'pending'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 0) {
+                $rowcount = 1;
+                //loop through the returned users that match the like clause
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "from")
+                            $name = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('from' => $name);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Update friendreq data +
+     * 
+     */
+    public function acceptFriendRequest($from, $to) {
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $dateupdated = $date->format('Y-m-d H:i:s');
+        $sql = "UPDATE friendreq  SET status = 'accepted', dateupdated = ? WHERE friendreq.from = ? AND friendreq.to = ?";
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('sss', $dateupdated, $from, $to);
+        $stmt->execute();
+        // check for successful updated
+        if ($stmt->affected_rows == 1) {
+
+            $success = "Friend Request Accepted Successfully!";
+            return $success;
+        } else {
+            echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
+     * Update friendreq data +
+     * 
+     */
+    public function declineFriendRequest($from, $to) {
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $dateupdated = $date->format('Y-m-d H:i:s');
+        $sql = "UPDATE friendreq  SET status = 'declined', dateupdated = ? WHERE friendreq.from = ? AND friendreq.to = ?";
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('sss', $dateupdated, $from, $to);
+        $stmt->execute();
+        // check for successful updated
+        if ($stmt->affected_rows == 1) {
+
+            $success = "Friend Request Declined!";
+            return $success;
+        } else {
+            echo 'Sorry, there was a problem with the database.';
+        }
+    }
+
+    /**
+     * Get a list of  friend requests statuses
+     */
+    public function getFriendRequestStatuses($from) {
+        //get a lost of friend request statuses based on a sender
+        $sql = "SELECT friendreq.to, status FROM friendreq WHERE friendreq.from = '$from'";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 0) {
+                $rowcount = 1;
+                //loop through the returned users that match the like clause
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "to")
+                            $name = $val;
+                        if ($var == "status")
+                            $status = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('to' => $name, 'status' =>$status);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
      * Encrypting password
      * @param password
      * returns salt and encrypted password

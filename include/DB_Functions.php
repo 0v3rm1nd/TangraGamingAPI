@@ -584,13 +584,71 @@ class DB_Functions {
                     }
                     ++$rowcount;
                     //make an array of the records data
-                    $record[] = array('to' => $name, 'status' =>$status);
+                    $record[] = array('to' => $name, 'status' => $status);
                 }
             }
             //return the array ready to be json encoded 
             return $record;
         }else {
             return false;
+        }
+    }
+
+    /**
+     * Get a list of  all the posts of a specific room
+     */
+    public function getPosts($roomname) {
+        //get a lost of posts based on a room name
+        $sql = "SELECT user, post FROM post WHERE room = '$roomname' ORDER BY datecreated DESC";
+        $result = $this->conn->query($sql) or die($this->conn->error);
+        $numRows = $result->num_rows;
+
+        if ($result) {
+            if ($numRows > 0) {
+                $rowcount = 1;
+                //loop through the returned users that match the like clause
+                while ($row = $result->fetch_assoc()) {
+                    while (list($var, $val) = each($row)) {
+                        if ($var == "user")
+                            $user = $val;
+                        if ($var == "post")
+                            $name = $val;
+                    }
+                    ++$rowcount;
+                    //make an array of the records data
+                    $record[] = array('user' => $user, 'post' => $name);
+                }
+            }
+            //return the array ready to be json encoded 
+            return $record;
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Make a post in the forum
+     */
+    public function makePost($user, $room, $post) {
+        //generate the timestamp to update the dateupdated field in the mysql database via the prepared statement
+        $date = new DateTime();
+        $datecreated = $date->format('Y-m-d H:i:s');
+        $sql = 'INSERT INTO post (user, room, post, datecreated)
+          VALUES (?, ?, ?, ?)';
+        $stmt = $this->conn->stmt_init();
+        $stmt = $this->conn->prepare($sql);
+        // bind parameters and insert the details into the database
+        $stmt->bind_param('ssss', $user, $room, $post, $datecreated);
+        $stmt->execute();
+        // check for successful store
+        if ($stmt->affected_rows == 1) {
+            // get room details 
+            $sql = "SELECT * FROM post WHERE user =\"$user\" AND room = \"$room\" AND datecreated = \"$datecreated\"";
+            // return details for the created record
+            $result = $this->conn->query($sql) or die($this->conn->error);
+            return $result->fetch_assoc();
+        } else {
+            echo 'Sorry, there was a problem with the database.';
         }
     }
 

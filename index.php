@@ -426,6 +426,43 @@ if (isset($_POST['tag']) && $_POST['tag'] != '') {
             $response["error_msg"] = "Error occured in getting friend request statutses";
             echo json_encode($response);
         }
+    }//end of tag getFriendRequestStatuses
+        else if ($tag == 'getPosts') {
+        $roomname = $_POST['roomname'];
+        $getposts= $db->getPosts($roomname);
+        if ($getposts) {
+            //the query was successful + form json object
+            $response["success"] = 1;
+            $response["GetPosts"] = $getposts;
+            echo json_encode($response);
+        } else {
+            // get requests  failed
+            $response["error"] = 1;
+            $response["error_msg"] = "Error occured in getting the forum posts";
+            echo json_encode($response);
+        }
+    }//end of tag getPosts
+        else if ($tag == 'makePost') {
+        $user = $_POST['user'];
+        $room = $_POST['room'];
+        $post = $_POST['post'];
+        //make a post entry based on a specific room and a user
+        $makePost = $db->makePost($user, $room, $post);
+        if ($makePost) {
+            // the query was ok
+            // echo json with success = 1
+            $response["success"] = 1;
+            $response["post"]["user"] = $makePost["user"];
+            $response["post"]["room"] = $makePost["room"];
+            $response["post"]["post"] = $makePost["post"];
+            $response["post"]["datacreated"] = $makePost["datecreated"];
+            echo json_encode($response);
+        } else {
+            // echo json with error = 1
+            $response["error"] = 1;
+            $response["error_msg"] = "There was a problem submitin the post";
+            echo json_encode($response);
+        }
     }
     //Other part of the system
     else if ($tag == 'getwall') {

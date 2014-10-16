@@ -1,7 +1,7 @@
 <?php
       $dbserver = 'localhost';
       $dbuser = 'e0v3rm1n_root';
-      $dbpass =  '!0v3ry0urm1nd';
+      $dbpass =  '';
       $dbname = 'e0v3rm1n_androidproject';
       $limit = 100;
       

@@ -4,10 +4,10 @@ function dbConnect($usertype, $connectionType = 'mysqli') {
   $db = 'tangra'; 
   if ($usertype  == 'read') { 
     $user = 'root'; 
-    $pwd = '0v3rm1nd'; 
+    $pwd = ''; 
   } elseif ($usertype == 'write') { 
     $user = 'root'; 
-    $pwd = '0v3rm1nd'; 
+    $pwd = ''; 
   } else { 
     exit('Unrecognized connection type'); 
   } 

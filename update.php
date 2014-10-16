@@ -6,7 +6,7 @@ if ((isset($_POST['id']) == true) && ($_POST['id'] != '') &&
     {    
       $dbserver = 'localhost';
       $dbuser = 'root';
-      $dbpass =  '0v3rm1nd';
+      $dbpass =  '';
       $dbname = 'androidproject';
       
       $id = $_POST['id'];
